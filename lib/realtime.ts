@@ -39,7 +39,7 @@ export function readCache(userId: string): LocalCache | null {
 export function writeCache(userId: string, patch: Partial<Omit<LocalCache, "userId" | "ts">>) {
   if (typeof window === "undefined") return;
   try {
-    const prev = readCache(userId) ?? { userId, records: [], total: 0, stats: { total: 0, accepted: 0, notAccepted: 0, unknown: 0 }, facets: { places: [], includedIn: [] } };
+    const prev = readCache(userId) ?? { userId, records: [], total: 0, stats: { total: 0, accepted: 0, notAccepted: 0, declined: 0, unknown: 0 }, facets: { places: [], includedIn: [] } };
     localStorage.setItem(cacheKey(userId), JSON.stringify({ ...prev, ...patch, ts: Date.now() }));
   } catch {
     // cache is best-effort; quota/failure must not break the app

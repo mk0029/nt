@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useId, type ReactNode } from "react";
+import { forwardRef, useCallback, useId, useState, type ReactNode } from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,8 +26,20 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
     const id = useId();
     const selected = options.find((o) => o.value === value);
 
+    // Popovers portaled to document.body render BELOW a native <dialog> because
+    // dialogs live in the browser's top layer (above every z-index). Mount the
+    // dropdown inside the nearest dialog so it shows above the modal. We cannot
+    // match `dialog[open]`: this Select mounts before the dialog's effect calls
+    // showModal(), so at ref time the open attribute isn't set yet.
+    const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+    const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+      if (!node) return;
+      const host = node.closest("dialog");
+      setPortalTarget(host ?? document.body);
+    }, []);
+
     return (
-      <div className="w-full">
+      <div className="w-full" ref={setContainerRef}>
         {label && (
           <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
             {label}
@@ -51,7 +63,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             <span className="truncate">{selected ? selected.label : placeholder}</span>
             <ChevronDown className="size-4 shrink-0 text-[var(--muted)]" aria-hidden />
           </SelectPrimitive.Trigger>
-          <SelectPrimitive.Portal>
+          <SelectPrimitive.Portal container={portalTarget ?? undefined}>
             <SelectPrimitive.Content
               position="popper"
               sideOffset={6}

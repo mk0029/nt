@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Shield, Copy, Check } from "lucide-react";
-import { ProtectedApp, useProtected } from "@/components/security/ProtectedApp";
+import { ProtectedApp } from "@/components/security/ProtectedApp";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -24,7 +24,6 @@ interface GeneratedCode {
 }
 
 function AdminDashboard() {
-  const ctx = useProtected();
   const { toast } = useToast();
   const [users, setUsers] = useState<ForgotUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,9 +87,6 @@ function AdminDashboard() {
         onImport={() => undefined}
         hideImport
         isAdmin
-        lockEnabled={ctx.lockEnabled}
-        onLockRequest={ctx.lockNow}
-        onLockChanged={() => void ctx.refreshLock()}
       />
 
       <main className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-4 py-6 md:px-6">

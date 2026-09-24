@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useToast } from "@/components/ui/Toast";
 
 interface ConfigurePinDialogProps {
@@ -100,8 +100,7 @@ export function ConfigurePinDialog({
 
           <form onSubmit={handleSet} className="space-y-4">
             {configured && (
-              <Input
-                type="password"
+              <PasswordInput
                 label="Current PIN"
                 value={currentPin}
                 onChange={(e) => setCurrentPin(e.target.value)}
@@ -110,8 +109,7 @@ export function ConfigurePinDialog({
                 required
               />
             )}
-            <Input
-              type="password"
+            <PasswordInput
               label={configured ? "New PIN" : "PIN"}
               value={pin}
               onChange={(e) => setPin(e.target.value)}
@@ -120,8 +118,7 @@ export function ConfigurePinDialog({
               minLength={4}
               required
             />
-            <Input
-              type="password"
+            <PasswordInput
               label="Confirm PIN"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}

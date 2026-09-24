@@ -21,7 +21,7 @@ export function NumberCard({
 }: NumberCardProps) {
   return (
     <div
-      className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
+      className="flex items-center gap-2.5 border-b px-3 py-2.5 last:border-b-0"
       style={{
         borderColor: "var(--glass-border)",
         background: selected ? "rgba(99,102,241,0.06)" : "transparent",
@@ -44,8 +44,21 @@ export function NumberCard({
           <p
             className="mt-0.5 truncate text-xs"
             style={{ color: "var(--muted)" }}>
-            {[record.name, record.place].filter(Boolean).join(" · ") ||
-              "No details"}
+            {record.lastResponse && (
+              <>{record.lastResponse} · </>
+            )}
+            {[
+              record.name,
+              record.place,
+              record.lastContactedAt
+                ? `contacted ${new Date(record.lastContactedAt).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                  })}`
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" · ") || "No details"}
           </p>
         </div>
         <StatusPill status={record.callStatus} />

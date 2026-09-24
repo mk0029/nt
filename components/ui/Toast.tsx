@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -42,6 +43,12 @@ const TOAST_BORDER: Record<ToastType, string> = {
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const subscribe = useCallback(() => () => {}, []);
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  );
 
   const dismiss = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -61,42 +68,44 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div
-        className="pointer-events-none fixed right-4 top-4 z-[100] flex w-full max-w-sm flex-col gap-2"
-        role="region"
-        aria-live="polite"
-      >
-        <AnimatePresence>
-          {toasts.map((t) => (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, x: 40, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 40, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="pointer-events-auto flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[var(--foreground)]"
-              style={{
-                background: "var(--glass-strong)",
-                border: `1px solid ${TOAST_BORDER[t.type]}`,
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                boxShadow: "var(--shadow)",
-              }}
-            >
-              {TOAST_ICONS[t.type]}
-              <span className="flex-1">{t.message}</span>
-              <button
-                type="button"
-                onClick={() => dismiss(t.id)}
-                aria-label="Dismiss"
-                className="rounded p-0.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+      {mounted && (
+        <div
+          className="pointer-events-none fixed left-4 right-4 top-4 z-[100] mx-auto flex w-auto max-w-sm flex-col gap-2"
+          role="region"
+          aria-live="polite"
+        >
+          <AnimatePresence>
+            {toasts.map((t) => (
+              <motion.div
+                key={t.id}
+                initial={{ opacity: 0, x: 40, scale: 0.95 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 40, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="pointer-events-auto flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[var(--foreground)]"
+                style={{
+                  background: "var(--glass-strong)",
+                  border: `1px solid ${TOAST_BORDER[t.type]}`,
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  boxShadow: "var(--shadow)",
+                }}
               >
-                <XCircle className="size-4" />
-              </button>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+                {TOAST_ICONS[t.type]}
+                <span className="flex-1">{t.message}</span>
+                <button
+                  type="button"
+                  onClick={() => dismiss(t.id)}
+                  aria-label="Dismiss"
+                  className="rounded p-0.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+                >
+                  <XCircle className="size-4" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
     </ToastContext.Provider>
   );
 }

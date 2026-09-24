@@ -10,7 +10,8 @@ import { STAT_ITEMS } from "./NumberStats";
 
 const STATUS_BUTTONS: { status: CallStatus; label: string; icon: React.ReactNode }[] = [
   { status: "accepted", label: "Accepted", icon: <CheckCircle2 className="size-3.5" aria-hidden /> },
-  { status: "not_accepted", label: "Not accepted", icon: <XCircle className="size-3.5" aria-hidden /> },
+  { status: "not_accepted", label: "Not accepted", icon: <HelpCircle className="size-3.5" aria-hidden /> },
+  { status: "declined", label: "Declined", icon: <XCircle className="size-3.5" aria-hidden /> },
   { status: "unknown", label: "Unknown", icon: <HelpCircle className="size-3.5" aria-hidden /> },
 ];
 

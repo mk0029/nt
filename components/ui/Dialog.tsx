@@ -58,6 +58,20 @@ export function Dialog({
     }
   }, [open]);
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    const dialog = ref.current;
+    // Clicks inside the card land on child elements; clicks on the backdrop
+    // land on the <dialog> itself, outside its bounding box.
+    if (!dialog || e.target !== dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    const inside =
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom;
+    if (!inside) dialog.close();
+  };
+
   const render = (close: () => void) => {
     if (renderChildren) return renderChildren(close);
     if (children) return children(close);
@@ -78,7 +92,8 @@ export function Dialog({
         border: "none",
         colorScheme: "dark",
       }}
-      onClose={onClose}>
+      onClose={onClose}
+      onClick={handleBackdropClick}>
       <style>{`
         dialog::backdrop {
           background: var(--overlay);

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         "total": count(*[${where}]),
         "accepted": count(*[${where} && callStatus == "accepted"]),
         "notAccepted": count(*[${where} && callStatus == "not_accepted"]),
+        "declined": count(*[${where} && callStatus == "declined"]),
         "unknown": count(*[${where} && callStatus == "unknown"])
       }`,
       { userId: auth.session.sub }

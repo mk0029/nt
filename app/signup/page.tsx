@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useToast } from "@/components/ui/Toast";
 
 export default function SignupPage() {
@@ -75,8 +76,7 @@ export default function SignupPage() {
             autoComplete="email"
             autoFocus
           />
-          <Input
-            type="password"
+          <PasswordInput
             label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

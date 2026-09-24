@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<CallStatus, { label: string; color: string }> = {
   accepted: { label: "Accepted", color: "#10b981" },
-  not_accepted: { label: "Not accepted", color: "#ef4444" },
-  unknown: { label: "Unknown", color: "#8b5cf6" },
+  not_accepted: { label: "Not accepted", color: "#f59e0b" },
+  declined: { label: "Declined", color: "#ef4444" },
+  unknown: { label: "Unknown", color: "#6b7280" },
 };
 
 export function StatusPill({ status }: { status: CallStatus }) {
@@ -33,7 +34,7 @@ interface StatusSwitchProps {
   className?: string;
 }
 
-const ORDER: CallStatus[] = ["unknown", "accepted", "not_accepted"];
+const ORDER: CallStatus[] = ["unknown", "not_accepted", "accepted", "declined"];
 
 export function StatusSwitch({
   status,

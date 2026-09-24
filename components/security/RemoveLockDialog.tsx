@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useToast } from "@/components/ui/Toast";
 
 interface RemoveLockDialogProps {
@@ -82,8 +82,7 @@ export function RemoveLockDialog({ open, onClose, onChanged }: RemoveLockDialogP
             </p>
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
-          <Input
-            type="password"
+          <PasswordInput
             label="Current PIN"
             value={currentPin}
             onChange={(e) => setCurrentPin(e.target.value)}

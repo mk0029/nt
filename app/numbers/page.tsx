@@ -22,7 +22,6 @@ function NumbersDashboard() {
     loading,
     statsLoading,
     filters,
-    perPage,
     facets,
     updateFilter,
     toggleCallStatus,
@@ -92,12 +91,9 @@ function NumbersDashboard() {
       <Header
         onImport={() => setImportOpen(true)}
         isAdmin={ctx.user.isAdmin}
-        lockEnabled={ctx.lockEnabled}
-        onLockRequest={ctx.lockNow}
-        onLockChanged={() => void ctx.refreshLock()}
       />
 
-      <main className="mx-auto flex w-full max-w-6xl min-h-0 flex-1 flex-col gap-3 overflow-hidden px-4 py-4 md:px-6">
+      <main className="mx-auto flex w-full max-w-6xl min-h-0 flex-1 flex-col gap-2.5 overflow-hidden px-3 py-3 md:px-6 md:py-4">
         <NumberFilters
           filters={filters}
           onFilterChange={updateFilter}
@@ -123,13 +119,11 @@ function NumbersDashboard() {
             total={total}
             loading={loading}
             filters={filters}
-            perPage={perPage}
             selected={selected}
             onToggleSelect={toggleSelect}
             onSelectAllVisible={selectAllVisible}
             onOpenDetails={setDetailsRecord}
             onToggleStatus={handleStatusChange}
-            onFilterChange={updateFilter}
             onImport={() => setImportOpen(true)}
           />
         </div>

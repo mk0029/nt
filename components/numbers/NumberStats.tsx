@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
-import { Hash, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
+import { Hash, CheckCircle2, HelpCircle, XCircle } from "lucide-react";
 import type { NumberStats } from "@/types/number";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -17,8 +17,9 @@ interface StatItem {
 export const STAT_ITEMS: StatItem[] = [
   { key: "total", label: "Total Numbers", icon: <Hash className="size-4" />, color: "#8b5cf6" },
   { key: "accepted", label: "Accepted", icon: <CheckCircle2 className="size-4" />, color: "#10b981" },
-  { key: "notAccepted", label: "Not Accepted", icon: <XCircle className="size-4" />, color: "#ef4444" },
-  { key: "unknown", label: "Unknown", icon: <HelpCircle className="size-4" />, color: "#f59e0b" },
+  { key: "notAccepted", label: "Not Accepted", icon: <XCircle className="size-4" />, color: "#f59e0b" },
+  { key: "declined", label: "Declined", icon: <XCircle className="size-4" />, color: "#ef4444" },
+  { key: "unknown", label: "Unknown", icon: <HelpCircle className="size-4" />, color: "#6b7280" },
 ];
 
 function AnimatedCounter({ value }: { value: number }) {
@@ -45,7 +46,7 @@ function AnimatedCounter({ value }: { value: number }) {
 export function NumberStats({ stats, loading }: { stats: NumberStats; loading?: boolean }) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+<div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {STAT_ITEMS.map((item) => (
           <GlassCard key={item.key} className="p-4">
             <Skeleton className="mb-2 h-4 w-24" />
@@ -57,9 +58,9 @@ export function NumberStats({ stats, loading }: { stats: NumberStats; loading?: 
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {STAT_ITEMS.map((item) => (
-        <GlassCard key={item.key} className="p-4">
+<div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {STAT_ITEMS.map((item) => (
+          <GlassCard key={item.key} className="p-4">
           <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: "var(--muted)" }}>
             <span style={{ color: item.color }}>{item.icon}</span>
             {item.label}
@@ -69,7 +70,7 @@ export function NumberStats({ stats, loading }: { stats: NumberStats; loading?: 
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="mt-2 text-2xl font-bold"
+            className="mt-2 text-xl font-bold sm:text-2xl"
             style={{ color: item.color }}
           >
             <AnimatedCounter value={stats[item.key]} />

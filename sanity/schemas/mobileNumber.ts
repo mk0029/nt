@@ -46,6 +46,7 @@ export default defineType({
         list: [
           { title: "Accepted", value: "accepted" },
           { title: "Not Accepted", value: "not_accepted" },
+          { title: "Declined", value: "declined" },
           { title: "Unknown", value: "unknown" },
         ],
       },
@@ -55,11 +56,6 @@ export default defineType({
     {
       name: "lastResponse",
       title: "Last Response",
-      type: "text",
-    },
-    {
-      name: "notes",
-      title: "Notes",
       type: "text",
     },
     {

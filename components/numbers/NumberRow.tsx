@@ -14,7 +14,7 @@ interface NumberRowProps {
 }
 
 const ROW_GRID =
-  "grid grid-cols-[32px_minmax(160px,1fr)_100px_120px_110px] items-center gap-3";
+  "grid grid-cols-[32px_minmax(160px,1fr)_100px_120px_120px_110px] items-center gap-3";
 
 export function NumberRow({
   record,
@@ -46,7 +46,11 @@ export function NumberRow({
           className="group flex items-center gap-1 text-left text-sm font-semibold text-indigo-600 hover:underline">
           <span className="dark:text-white text-black truncate ">
             {formatPhoneNumber(record.normalizedPhoneNumber)}
-            {record.name ? ` — ${record.name}` : ""}
+            {record.lastResponse && ` — ${record.lastResponse}`}&nbsp;
+            <span className="text-yellow-700">
+              {" "}
+              {record.name ? ` · ${record.name}` : ""}
+            </span>{" "}
           </span>
           <ChevronRight
             className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
@@ -68,6 +72,14 @@ export function NumberRow({
           day: "numeric",
           month: "short",
         })}
+      </div>
+      <div className="text-sm" style={{ color: "var(--muted)" }}>
+        {record.lastContactedAt
+          ? new Date(record.lastContactedAt).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+            })
+          : "—"}
       </div>
     </div>
   );

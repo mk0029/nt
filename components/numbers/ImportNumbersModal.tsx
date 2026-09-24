@@ -228,6 +228,7 @@ export function ImportNumbersModal({ open, onClose, onImport }: ImportNumbersMod
 
   return (
     <Dialog
+      mobileFullHeight
       open={open}
       onClose={onClose}
       title="Import Numbers"

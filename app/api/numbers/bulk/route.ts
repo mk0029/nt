@@ -3,7 +3,7 @@ import { sanityClientRead, sanityClientWrite } from "@/sanity/client";
 import { requireActive } from "@/lib/security";
 import type { CallStatus } from "@/types/number";
 
-const VALID_STATUSES = new Set<CallStatus>(["accepted", "not_accepted", "unknown"]);
+const VALID_STATUSES = new Set<CallStatus>(["accepted", "not_accepted", "declined", "unknown"]);
 const CHUNK_SIZE = 500;
 
 function isValidStatus(value: unknown): value is CallStatus {

@@ -1,4 +1,4 @@
-const CACHE = "number-response-tracker-v1";
+const CACHE = "number-response-tracker-v2";
 const APP_SHELL = ["/", "/numbers", "/login", "/signup"];
 
 self.addEventListener("install", (event) => {
@@ -26,18 +26,19 @@ self.addEventListener("fetch", (event) => {
   // API and other dynamic data: network only
   if (url.pathname.startsWith("/api/")) return;
 
-  // Static build assets: cache-first
+  // Static build assets: network-first (fresh code always wins), cache as
+  // offline fallback. Cache-first caused stale bytes after every deploy
+  // because the versioned cache name never changed, so old JS chunks were
+  // served forever and triggered hydration mismatches.
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(
-      caches.match(request).then(
-        (cached) =>
-          cached ||
-          fetch(request).then((response) => {
-            const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy));
-            return response;
-          })
-      )
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }

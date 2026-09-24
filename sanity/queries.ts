@@ -15,17 +15,22 @@ export function buildWhereClause(
   const parts: string[] = ['_type == "mobileNumber" && userId == $userId'];
   const params: Record<string, unknown> = { userId };
 
-  if (filters.status !== "all") {
-    parts.push("callStatus == $status");
+  if (filters.status.length > 0) {
+    parts.push("callStatus in $status");
     params.status = filters.status;
   }
 
   const search = filters.search.trim();
   if (search) {
     parts.push(
-      'name match $search || place match $search || phoneNumber match $search || includedIn match $search || lastResponse match $search'
+      "name match $s || place match $s || lastResponse match $s || includedIn match $s"
     );
-    params.search = `${search}*`;
+    params.s = `*${search}*`;
+    const digits = search.replace(/[^0-9]/g, "");
+    if (digits) {
+      parts.push("normalizedPhoneNumber match $d");
+      params.d = `*${digits}*`;
+    }
   }
 
   if (filters.place) {
@@ -56,7 +61,6 @@ export const NUMBER_FIELDS = `
   includedIn,
   callStatus,
   lastResponse,
-  notes,
   lastContactedAt,
   createdAt,
   updatedAt,

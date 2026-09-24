@@ -3,7 +3,7 @@ import { sanityClientRead, sanityClientWrite } from "@/sanity/client";
 import { requireActive } from "@/lib/security";
 import type { CallStatus } from "@/types/number";
 
-const VALID_STATUSES = new Set<CallStatus>(["accepted", "not_accepted", "unknown"]);
+const VALID_STATUSES = new Set<CallStatus>(["accepted", "not_accepted", "declined", "unknown"]);
 
 function toCallStatus(value: unknown): CallStatus {
   if (typeof value === "string" && VALID_STATUSES.has(value as CallStatus)) {
@@ -51,7 +51,6 @@ export async function PATCH(
       patch.includedIn = body.includedIn || undefined;
     if (body.lastResponse !== undefined)
       patch.lastResponse = body.lastResponse || undefined;
-    if (body.notes !== undefined) patch.notes = body.notes || undefined;
     if (body.lastContactedAt !== undefined)
       patch.lastContactedAt = body.lastContactedAt || undefined;
 

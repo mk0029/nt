@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { MobileNumber, NumberStats, NumberFilters, CallStatus } from "@/types/number";
 import { readCache, writeCache, onNumbersChanged, notifyNumbersChanged, type Facets } from "@/lib/realtime";
 
-const EMPTY_STATS: NumberStats = { total: 0, accepted: 0, notAccepted: 0, unknown: 0 };
+const EMPTY_STATS: NumberStats = { total: 0, accepted: 0, notAccepted: 0, declined: 0, unknown: 0 };
 const POLL_MS = 20_000;
 
 async function assertOk(res: Response): Promise<void> {
@@ -25,7 +25,7 @@ async function assertOk(res: Response): Promise<void> {
   throw new Error(`HTTP ${res.status}${detail ? ` ${detail}` : ""}`);
 }
 
-export function useNumbers(perPage = 50) {
+export function useNumbers() {
   const [userId, setUserId] = useState<string | null>(null);
   const [records, setRecords] = useState<MobileNumber[]>([]);
   const [total, setTotal] = useState(0);
@@ -33,14 +33,13 @@ export function useNumbers(perPage = 50) {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [facets, setFacets] = useState<Facets>({ places: [], includedIn: [] });
-  const [filters, setFilters] = useState<Omit<NumberFilters, "perPage">>({
-    status: "all",
+  const [filters, setFilters] = useState<NumberFilters>({
+    status: [],
     search: "",
     place: "",
     includedIn: "",
     sort: "updatedAt",
     sortDir: "desc",
-    page: 1,
   });
   const abortRef = useRef<AbortController | null>(null);
   const latestRef = useRef<AbortController | null>(null);
@@ -93,11 +92,9 @@ export function useNumbers(perPage = 50) {
     }
   }, [userId]);
 
-  const fetchNumbers = useCallback(async (filtersToFetch: Omit<NumberFilters, "perPage">, signal?: AbortSignal) => {
+  const fetchNumbers = useCallback(async (filtersToFetch: NumberFilters, signal?: AbortSignal) => {
     const sp = new URLSearchParams();
-    if (filtersToFetch.page > 1) sp.set("page", String(filtersToFetch.page));
-    sp.set("perPage", String(perPage));
-    if (filtersToFetch.status !== "all") sp.set("status", filtersToFetch.status);
+    filtersToFetch.status.forEach((s) => sp.append("status", s));
     if (filtersToFetch.search) sp.set("search", filtersToFetch.search);
     if (filtersToFetch.place) sp.set("place", filtersToFetch.place);
     if (filtersToFetch.includedIn) sp.set("includedIn", filtersToFetch.includedIn);
@@ -120,7 +117,7 @@ export function useNumbers(perPage = 50) {
     } finally {
       setLoading(false);
     }
-  }, [perPage, userId]);
+  }, [userId]);
 
   useEffect(() => {
     const load = async () => {
@@ -173,14 +170,9 @@ export function useNumbers(perPage = 50) {
     };
   }, [pullLatest]);
 
-  const updateFilter = useCallback((patch: Partial<Omit<NumberFilters, "perPage">>) => {
+  const updateFilter = useCallback((patch: Partial<NumberFilters>) => {
     setLoading(true);
-    setFilters((prev) => {
-      const next = { ...prev, ...patch };
-      if (patch.search !== undefined) next.page = 1;
-      if (patch.status !== undefined && patch.status !== prev.status) next.page = 1;
-      return next;
-    });
+    setFilters((prev) => ({ ...prev, ...patch }));
   }, []);
 
   const optimisticUpdate = useCallback(
@@ -203,7 +195,7 @@ export function useNumbers(perPage = 50) {
       optimisticUpdate(id, { callStatus: newStatus });
       const statsPatch = (prev: NumberStats) => {
         const s = { ...prev };
-        const keyMap: Record<CallStatus, keyof NumberStats> = { accepted: "accepted", not_accepted: "notAccepted", unknown: "unknown" };
+        const keyMap: Record<CallStatus, keyof NumberStats> = { accepted: "accepted", not_accepted: "notAccepted", declined: "declined", unknown: "unknown" };
         s[keyMap[oldStatus]]--;
         s[keyMap[newStatus]]++;
         return s;
@@ -223,7 +215,7 @@ export function useNumbers(perPage = 50) {
         optimisticUpdate(id, { callStatus: oldStatus });
         setStats((prev) => {
           const s = { ...prev };
-          const keyMap: Record<CallStatus, keyof NumberStats> = { accepted: "accepted", not_accepted: "notAccepted", unknown: "unknown" };
+          const keyMap: Record<CallStatus, keyof NumberStats> = { accepted: "accepted", not_accepted: "notAccepted", declined: "declined", unknown: "unknown" };
           s[keyMap[newStatus]]--;
           s[keyMap[oldStatus]]++;
           return s;
@@ -246,7 +238,8 @@ export function useNumbers(perPage = 50) {
         });
         await assertOk(res);
         setStatsLoading(true);
-        await fetchStats();
+        setLoading(true);
+        await Promise.all([fetchStats(), fetchNumbers(filters)]);
         notifyNumbersChanged();
         return true;
       } catch {
@@ -254,7 +247,7 @@ export function useNumbers(perPage = 50) {
         return false;
       }
     },
-    [optimisticUpdate, fetchStats, records],
+    [optimisticUpdate, fetchStats, fetchNumbers, records, filters],
   );
 
   const deleteContact = useCallback(
@@ -270,7 +263,7 @@ export function useNumbers(perPage = 50) {
         if (deleted) {
           setStats((prev) => {
             const s = { ...prev };
-            const keyMap: Record<CallStatus, keyof NumberStats> = { accepted: "accepted", not_accepted: "notAccepted", unknown: "unknown" };
+            const keyMap: Record<CallStatus, keyof NumberStats> = { accepted: "accepted", not_accepted: "notAccepted", declined: "declined", unknown: "unknown" };
             s[keyMap[deleted.callStatus]]--;
             s.total--;
             return s;
@@ -356,7 +349,7 @@ export function useNumbers(perPage = 50) {
         await assertOk(res);
         setStatsLoading(true);
         setLoading(true);
-        await Promise.all([fetchStats(), fetchNumbers({ ...filters, page: 1 })]);
+        await Promise.all([fetchStats(), fetchNumbers({ ...filters })]);
         notifyNumbersChanged();
         return true;
       } catch {
@@ -378,7 +371,6 @@ export function useNumbers(perPage = 50) {
     loading,
     statsLoading,
     filters,
-    perPage,
     facets,
     updateFilter,
     toggleCallStatus,

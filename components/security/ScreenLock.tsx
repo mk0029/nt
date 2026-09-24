@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export interface UnlockResult {
   error?: string;
@@ -83,8 +83,7 @@ export function ScreenLock({ onUnlock }: ScreenLockProps) {
         </div>
 
         <form onSubmit={submit} className="space-y-4">
-          <Input
-            type="password"
+          <PasswordInput
             label="PIN"
             value={pin}
             onChange={(e) => setPin(e.target.value)}

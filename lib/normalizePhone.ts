@@ -51,20 +51,43 @@ export function isValidPhone(raw: string, countryHint = "IN"): boolean {
 
 /**
  * Scans pasted text for phone number candidates. Works with any format:
- * WhatsApp exports, mixed text, comma-separated, one-per-line, etc.
- * Finds all contiguous digit sequences of 7–15 characters, dedupes, and
- * validates each through normalizePhone.
+ * WhatsApp exports, mixed text, comma-separated, one-per-line, spaced
+ * country codes ("+91 98111 22233"), dashes, etc.
  */
 export function parseRawNumbers(raw: string): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
 
-  const matches = raw.match(/\d{7,15}/g) ?? [];
-  for (const digits of matches) {
-    if (seen.has(digits)) continue;
-    seen.add(digits);
+  const push = (digits: string) => {
     const normalized = normalizePhone(digits);
-    if (normalized) out.push(normalized);
+    if (normalized && !seen.has(normalized)) {
+      seen.add(normalized);
+      out.push(normalized);
+    }
+  };
+
+  // Split on anything that can't be part of a phone number (commas,
+  // semicolons, letters, newlines, …). Spaces, +, -, and parentheses are
+  // kept so "+91 98111 22233" stays one token instead of three short digit
+  // runs — but a newline or tab still separates numbers.
+  const tokens = raw.split(/[^0-9+()\- ]+/).filter((t) => /\d/.test(t));
+
+  for (const token of tokens) {
+    let rest = token;
+    // Each "+…" group is one explicit international number: spaces, dashes
+    // and parentheses inside it are just formatting, so the whole group is
+    // one candidate ("+91 98111 22233").
+    while (rest.includes("+")) {
+      const m = rest.match(/\+\d[\d ()-]*/);
+      if (!m) break;
+      const index = m.index ?? 0;
+      // Bare digit runs before this "+…" group were not consumed yet.
+      for (const run of rest.slice(0, index).match(/\d{7,15}/g) ?? []) push(run);
+      push(m[0].replace(/\D/g, ""));
+      rest = rest.slice(index + m[0].length);
+    }
+    // Bare digits: whitespace still separates numbers (old behavior).
+    for (const run of rest.match(/\d{7,15}/g) ?? []) push(run);
   }
   return out;
 }

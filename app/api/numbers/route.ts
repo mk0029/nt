@@ -6,9 +6,10 @@ import {
   buildWhereClause,
   NUMBER_FIELDS,
 } from "@/sanity/queries";
-import type { MobileNumber, NumberFilters } from "@/types/number";
+import type { CallStatus, MobileNumber, NumberFilters } from "@/types/number";
 
-const MAX_PER_PAGE = 100;
+const CALL_STATUSES: CallStatus[] = ["accepted", "not_accepted", "declined", "unknown"];
+const isCallStatus = (v: string): v is CallStatus => (CALL_STATUSES as string[]).includes(v);
 
 export async function GET(request: NextRequest) {
   if (!sanityClientRead) {
@@ -24,25 +25,19 @@ export async function GET(request: NextRequest) {
   try {
     const sp = request.nextUrl.searchParams;
     const filters: NumberFilters = {
-      status: (sp.get("status") as NumberFilters["status"]) || "all",
+      status: sp.getAll("status").filter(isCallStatus),
       search: sp.get("search") || "",
       place: sp.get("place") || "",
       includedIn: sp.get("includedIn") || "",
       sort: (sp.get("sort") as NumberFilters["sort"]) || "updatedAt",
       sortDir: sp.get("sortDir") === "asc" ? "asc" : "desc",
-      page: Math.max(1, parseInt(sp.get("page") || "1", 10) || 1),
-      perPage: Math.min(
-        MAX_PER_PAGE,
-        Math.max(1, parseInt(sp.get("perPage") || "50", 10) || 50)
-      ),
     };
 
     const { query, params } = buildWhereClause(filters, auth.session.sub);
-    const start = (filters.page - 1) * filters.perPage;
 
     const [records, total] = await Promise.all([
       sanityClientRead.fetch<MobileNumber[]>(
-        `*[${query}] | ${buildOrder(filters)} [${start}...${start + filters.perPage}] { ${NUMBER_FIELDS} }`,
+        `*[${query}] | ${buildOrder(filters)} { ${NUMBER_FIELDS} }`,
         params
       ),
       sanityClientRead.fetch<number>(`count(*[${query}])`, params),
@@ -79,13 +74,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No numbers provided" }, { status: 400 });
     }
 
-    const existing = await sanityClientRead.fetch<string[]>(
-      `*[_type == "mobileNumber" && userId == $userId].normalizedPhoneNumber`,
+    const existing = await sanityClientRead.fetch<
+      { normalizedPhoneNumber: string }[]
+    >(
+      `*[_type == "mobileNumber" && userId == $userId] { normalizedPhoneNumber }`,
       { userId: auth.session.sub }
     );
-    const existingSet = new Set(existing);
+    const existingSet = new Set(existing.map((e) => e.normalizedPhoneNumber));
+
+    const nextSeq = existing.length + 1;
 
     const now = new Date().toISOString();
+    let seq = nextSeq - 1;
     const toCreate = numbers.filter((n) => {
       const normalized = n.normalizedPhoneNumber;
       if (!normalized || existingSet.has(normalized)) return false;
@@ -96,11 +96,13 @@ export async function POST(request: NextRequest) {
     if (toCreate.length > 0) {
       const tx = sanityClientWrite.transaction();
       for (const num of toCreate) {
+        seq++;
         tx.create({
           _type: "mobileNumber",
           userId: auth.session.sub,
           phoneNumber: num.phoneNumber,
           normalizedPhoneNumber: num.normalizedPhoneNumber,
+          name: String(seq).padStart(2, "0"),
           callStatus: "unknown",
           createdAt: now,
           updatedAt: now,

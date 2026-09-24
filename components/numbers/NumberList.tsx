@@ -16,19 +16,17 @@ interface NumberListProps {
   records: MobileNumber[];
   total: number;
   loading: boolean;
-  filters: Omit<NumberFiltersType, "perPage">;
-  perPage: number;
+  filters: NumberFiltersType;
   selected: Set<string>;
   onToggleSelect: (id: string) => void;
   onSelectAllVisible: () => void;
   onOpenDetails: (record: MobileNumber) => void;
   onToggleStatus: (id: string, newStatus: CallStatus) => void;
-  onFilterChange: (patch: Partial<Omit<NumberFiltersType, "perPage">>) => void;
   onImport: () => void;
 }
 
 const HEADER_GRID =
-  "grid grid-cols-[32px_minmax(160px,1fr)_100px_120px_110px] items-center gap-3";
+  "grid grid-cols-[32px_minmax(160px,1fr)_100px_120px_120px_110px] items-center gap-3";
 
 function EmptyState({ onImport }: { onImport: () => void }) {
   return (
@@ -76,17 +74,15 @@ export function NumberList({
   total,
   loading,
   filters,
-  perPage,
   selected,
   onToggleSelect,
   onSelectAllVisible,
   onOpenDetails,
   onToggleStatus,
-  onFilterChange,
   onImport,
 }: NumberListProps) {
   const hasFilters =
-    filters.status !== "all" ||
+    filters.status.length > 0 ||
     !!filters.search ||
     !!filters.place ||
     !!filters.includedIn;
@@ -127,6 +123,7 @@ export function NumberList({
             <div>Status</div>
             <div>Place</div>
             <div>Last update</div>
+            <div>Last contact</div>
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -158,30 +155,11 @@ export function NumberList({
 
       {!loading && records.length > 0 && (
         <div
-          className="flex shrink-0 flex-col items-center justify-between gap-3 border-t px-4 py-3 sm:flex-row"
+          className="flex shrink-0 items-center justify-center border-t px-4 py-3"
           style={{ borderColor: "var(--glass-border)" }}>
-          {/* <p className="text-sm" style={{ color: "var(--muted)" }}>
-            Showing {Math.min((filters.page - 1) * perPage + 1, total)}–{Math.min(filters.page * perPage, total)} of {total.toLocaleString()}
-          </p> */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={filters.page <= 1}
-              onClick={() => onFilterChange({ page: filters.page - 1 })}>
-              Previous
-            </Button>
-            <span className="text-sm" style={{ color: "var(--muted)" }}>
-              Page {filters.page}
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={filters.page * perPage >= total}
-              onClick={() => onFilterChange({ page: filters.page + 1 })}>
-              Next
-            </Button>
-          </div>
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            {total.toLocaleString()} {total === 1 ? "number" : "numbers"}
+          </p>
         </div>
       )}
     </GlassCard>
